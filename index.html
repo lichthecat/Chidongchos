@@ -70,3 +70,122 @@
   </table>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>치동초 모여라 - 익명 게시판</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+      background: #f9f9f9;
+    }
+    h1 { color: #333; }
+    input, textarea, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+    }
+    .post {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+    .comment {
+      margin-left: 1rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>치동초 모여라 익명 게시판</h1>
+
+  <div id="new-post">
+    <input id="title" placeholder="제목 입력" />
+    <textarea id="content" rows="4" placeholder="내용 입력"></textarea>
+    <button onclick="addPost()">글 작성</button>
+  </div>
+
+  <h2>📋 게시글 목록</h2>
+  <div id="posts"></div>
+
+  <script>
+    const nicknames = ['익명 고양이', '익명 토끼', '익명 여우', '익명 강아지', '익명 다람쥐'];
+    const getRandomNick = () => nicknames[Math.floor(Math.random() * nicknames.length)] + Math.floor(Math.random() * 100);
+
+    function savePosts(posts) {
+      localStorage.setItem('posts', JSON.stringify(posts));
+    }
+
+    function loadPosts() {
+      const saved = localStorage.getItem('posts');
+      return saved ? JSON.parse(saved) : [];
+    }
+
+    function renderPosts() {
+      const posts = loadPosts();
+      const container = document.getElementById('posts');
+      container.innerHTML = '';
+
+      posts.forEach((post, index) => {
+        const div = document.createElement('div');
+        div.className = 'post';
+        div.innerHTML = `
+          <strong>${post.title}</strong> - <em>${post.nick}</em><br />
+          <p>${post.content}</p>
+          <button onclick="deletePost(${index})">삭제</button>
+          <div class="comment-section">
+            <input placeholder="댓글 입력" onkeydown="if(event.key==='Enter'){addComment(${index}, this)}" />
+            ${post.comments.map(c => `<div class="comment">💬 ${c.nick}: ${c.text}</div>`).join('')}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addPost() {
+      const title = document.getElementById('title').value;
+      const content = document.getElementById('content').value;
+      if (!title || !content) return alert('제목과 내용을 입력해주세요!');
+      const posts = loadPosts();
+      posts.unshift({ title, content, nick: getRandomNick(), comments: [] });
+      savePosts(posts);
+      renderPosts();
+      alert('새 글이 올라왔습니다!');
+      document.getElementById('title').value = '';
+      document.getElementById('content').value = '';
+    }
+
+    function deletePost(index) {
+      if (confirm('정말 삭제할까요?')) {
+        const posts = loadPosts();
+        posts.splice(index, 1);
+        savePosts(posts);
+        renderPosts();
+      }
+    }
+
+    function addComment(index, input) {
+      const text = input.value;
+      if (!text) return;
+      const posts = loadPosts();
+      posts[index].comments.push({ text, nick: getRandomNick() });
+      savePosts(posts);
+      renderPosts();
+    }
+
+    renderPosts();
+  </script>
+</body>
+</html>
